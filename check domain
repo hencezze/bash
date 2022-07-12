@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Если параметр не указан, выводим подсказку и завершаем работу
+if [ "$1" == "" ]
+then
+cat << EOF
+
+  Script that monitors how many days left until domain registration ends.
+
+  Usage: $(basename $0) domain.name
+EOF
+exit
+fi
+
+# Получаем строку, содержащую дату окончания регистрации
+PAIDTILL=$(whois $1 | grep 'paid-till\|Expiration Date\|Registry Expiry Date')
+
+# Если такая строка не найдена, выходим с ошибкой
+if [ -z "$PAIDTILL" ]
+then
+    echo "Registration end date is not available in whois database"
+    exit 1
+else
+    # Если дата выглядит как ГГГГ.ММ.ДД, то добавляем 00:00:00 в конец
+    [[ "$PAIDTILL" =~ "paid-till" ]] && PAIDTILL=${PAIDTILL//./-}" 00:00:00"
+    # Удаляем из строки всё до двоеточия, само двоеточие
+    # плюс автоматически будут удалены пробелы
+    PAIDTILL=${PAIDTILL#*:}
+    # Получаем текущую дату
+    CURRENTDATE=$(date "+%Y-%m-%d %H:%M:%S")
+    # Находим разницу между датами, получаем количество оставшихся дней
+    DAYS_LEFT=$(( ($(date -d "$PAIDTILL" +%s) - $(date -d "$CURRENTDATE" +%s) ) / 86400 ))
+    # Выводим, сколько дней осталось
+    echo $DAYS_LEFT days left
+fi
