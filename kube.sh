@@ -23,6 +23,5 @@ mkdir -p "${CUSTOM_KUBE_CONTEXTS}"
 
 for contextFile in `find "${CUSTOM_KUBE_CONTEXTS}" -type f -name "*.yml"`
 do
-
     export KUBECONFIG="$contextFile:$KUBECONFIG"
 done
